@@ -6,6 +6,9 @@ public class WaterTile : Tile
 
     public override void Display()
     {
+        Console.BackgroundColor = ConsoleColor.Blue;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write('/');
     }
 
     public override bool IsWalkable()

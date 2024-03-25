@@ -1,15 +1,3 @@
-public struct Position
-{
-    private int X { get; }
-    private int Y { get; }
-
-    public Position(int x, int y)
-    {
-        X = x;
-        Y = y;
-    }
-}
-
 public class Controller
 {
     private int _posX;

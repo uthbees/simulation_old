@@ -1,26 +1,17 @@
-public enum Direction
-{
-    North,
-    East,
-    South,
-    West
-}
-
 public class Map
 {
-    private List<Tile> _tiles = new();
+    private readonly List<Tile> _tiles = new();
     private int seed;
 
-    private const int HALF_WIDTH = 5;
-    private const int HALF_HEIGHT = 5;
+    private const int HalfWidth = 20;
+    private const int HalfHeight = 5;
 
-    public void Display(int centerX, int centerY)
+    public void Display(Position position)
     {
-        // Generate the tiles in view if they don't already exist
-        // This is absolutely terrible efficiency, but that doesn't matter for this project
-        for (int x = centerX - HALF_WIDTH; x <= centerX + HALF_WIDTH; x++)
+        // This is absolutely terrible efficiency, but that doesn't matter for this project.
+        for (int y = position.Y - HalfHeight; y <= position.Y + HalfHeight; y++)
         {
-            for (int y = centerY - HALF_HEIGHT; y <= centerY + HALF_HEIGHT; y++)
+            for (int x = position.X - HalfWidth; x <= position.X + HalfWidth; x++)
             {
                 Tile foundTile;
 
@@ -31,14 +22,19 @@ public class Map
                 }
                 else
                 {
-                    Tile newTile = GenerateTile(x, y);
+                    // Generate the tile if it doesn't already exist.
+                    var newTile = GenerateTile(x, y);
                     foundTile = newTile;
                     _tiles.Add(newTile);
                 }
 
-                // TODO: actually display something
+                foundTile.Display();
             }
+
+            Console.WriteLine();
         }
+
+        Console.ResetColor();
     }
 
     public bool DirectionIsWalkable(Direction direction)
@@ -50,6 +46,11 @@ public class Map
     private Tile GenerateTile(int x, int y)
     {
         // TODO
-        return new GroundTile(x, y);
+        if (x % 2 == 0)
+        {
+            return new GroundTile(x, y);
+        }
+
+        return new MountainTile(x, y);
     }
 }
