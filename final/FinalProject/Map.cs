@@ -1,6 +1,18 @@
+readonly struct TileAndPosition
+{
+    public Tile Tile { get; }
+    public Position Position { get; }
+
+    public TileAndPosition(Tile tile, Position position)
+    {
+        Tile = tile;
+        Position = position;
+    }
+}
+
 public class Map
 {
-    private readonly List<Tile> _tiles = new();
+    private readonly List<TileAndPosition> _tiles = new();
     private int seed;
 
     private const int HalfWidth = 20;
@@ -8,14 +20,16 @@ public class Map
 
     public void Display(Position position)
     {
-        // This is absolutely terrible efficiency, but that doesn't matter for this project.
-        for (int y = position.Y - HalfHeight; y <= position.Y + HalfHeight; y++)
+        // This is absolutely terrible efficiency.
+        // TODO: try to improve lookup times:
+        // https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
+        for (int y = position.Y + HalfHeight; y >= position.Y - HalfHeight; y--)
         {
             for (int x = position.X - HalfWidth; x <= position.X + HalfWidth; x++)
             {
-                Tile foundTile;
+                TileAndPosition foundTile;
 
-                int tileIndex = _tiles.FindIndex((tile) => tile.X == x && tile.Y == y);
+                int tileIndex = _tiles.FindIndex((tile) => tile.Position.X == x && tile.Position.Y == y);
                 if (tileIndex != -1)
                 {
                     foundTile = _tiles[tileIndex];
@@ -23,12 +37,14 @@ public class Map
                 else
                 {
                     // Generate the tile if it doesn't already exist.
-                    var newTile = GenerateTile(x, y);
+                    var newTile = new TileAndPosition(GenerateTile(x, y), new Position(x, y));
                     foundTile = newTile;
                     _tiles.Add(newTile);
                 }
 
-                foundTile.Display();
+                // TODO: If I need more things for scope, I can expand this into more of a rendering engine and add
+                // support for rendering the character and other things on top of tiles.
+                foundTile.Tile.Display();
             }
 
             Console.WriteLine();
@@ -43,14 +59,23 @@ public class Map
         return true;
     }
 
-    private Tile GenerateTile(int x, int y)
+    private static Tile GenerateTile(int x, int y)
     {
-        // TODO
-        if (x % 2 == 0)
+        // TODO: use noise
+        if (Math.Sqrt(x * x + y * y) < 4)
         {
-            return new GroundTile(x, y);
+            return new WaterTile();
+        }
+        if (Math.Sqrt(x * x + y * y) < 10)
+        {
+            return new BeachTile();
         }
 
-        return new MountainTile(x, y);
+        if (x % 2 == 0)
+        {
+            return new GroundTile();
+        }
+
+        return new MountainTile();
     }
 }

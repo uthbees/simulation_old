@@ -33,7 +33,7 @@ class Program
             Console.WriteLine("Use arrow keys or WASD to move. Press q to quit.");
 
             lastInput = Console.ReadKey(true).Key.ToString();
-Console.WriteLine(lastInput);
+
             switch (lastInput)
             {
                 case "W":
@@ -50,7 +50,7 @@ Console.WriteLine(lastInput);
                     break;
                 case "D":
                 case "RightArrow":
-                    controller.Move(Direction.West);
+                    controller.Move(Direction.East);
                     break;
             }
         }

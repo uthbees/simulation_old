@@ -1,9 +1,5 @@
 public class MountainTile : Tile
 {
-    public MountainTile(int x, int y) : base(x, y)
-    {
-    }
-
     public override void Display()
     {
         Console.BackgroundColor = ConsoleColor.DarkGray;
@@ -16,3 +12,4 @@ public class MountainTile : Tile
         return true;
     }
 }
+    
