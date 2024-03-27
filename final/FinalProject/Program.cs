@@ -1,4 +1,5 @@
 using System;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 class Program
 {
@@ -6,9 +7,15 @@ class Program
     {
         Map map = new();
         Controller controller = new(0, 0);
-        using Renderer renderer = new();
-        
-        renderer.Start();
+        using WindowManager windowManager = new();
+
+        windowManager.RegisterKeyAction(Keys.A, () => Console.WriteLine("a"));
+
+        while (!windowManager.WindowShouldClose())
+        {
+            windowManager.RenderFrame(new FrameData());
+            WindowManager.WaitForNextInput();
+        }
 
         // string lastInput = "";
         // while (lastInput != "Q")
