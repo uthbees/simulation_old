@@ -1,3 +1,25 @@
+using System;
+
+public struct Position
+{
+    public int X { get; }
+    public int Y { get; }
+
+    public Position(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
+}
+
+public enum Direction
+{
+    North,
+    East,
+    South,
+    West
+}
+
 public class Controller
 {
     private int _posX;
@@ -7,12 +29,6 @@ public class Controller
     {
         _posX = posX;
         _posY = posY;
-    }
-
-    public Controller()
-    {
-        _posX = 0;
-        _posY = 0;
     }
 
     public Position GetPosition()
@@ -36,6 +52,8 @@ public class Controller
             case Direction.West:
                 _posX--;
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
         }
     }
 }
