@@ -1,3 +1,5 @@
+using System;
+
 public class BeachTile : Tile
 {
     public override void Display()

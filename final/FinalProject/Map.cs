@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 readonly struct TileAndPosition
 {
     public Tile Tile { get; }
