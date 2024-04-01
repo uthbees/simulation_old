@@ -1,39 +1,27 @@
 using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class ProjectWindow : IDisposable
 {
-    private const int TileCountX = 15;
-    private const int TileCountY = 15;
+    private const int TileCountX = 2;
+    private const int TileCountY = 2;
+    private const int ResolutionX = 1500;
+    private const int ResolutionY = 1500;
 
     private readonly NativeWindow _window;
     private bool _closing = false;
 
     private readonly Shader _shader;
 
-    private readonly float[] _verticesData =
-    {
-        // positions        // colors
-        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-        0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // top right
-        -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top left
-    };
-
-    private readonly uint[] _vertexIndices =
-    {
-        0, 1, 2, // The first triangle will be the top-right half of the triangle
-        1, 2, 3 // Then the second will be the bottom-left half of the triangle
-    };
-
     public ProjectWindow()
     {
         var window = new NativeWindow(new NativeWindowSettings
         {
-            ClientSize = (TileCountX * 100, TileCountY * 100),
+            ClientSize = (ResolutionX, ResolutionY),
             Title = "Final Project"
         });
         _window = window;
@@ -41,28 +29,29 @@ public class ProjectWindow : IDisposable
 
         // Set the background color
         GL.ClearColor(0.39f, 0.58f, 0.93f, 1.0f);
-        
+
+        // Assemble the vertex data for the number of tiles we'll be displaying
+        var verticesData = AssembleVertices(TileCountX, TileCountY);
+        var vertexIndices = AssembleTileVertexIndices(TileCountX, TileCountY);
+
         // Initialize the array buffer (this will hold our vertex data)
         GL.BindBuffer(BufferTarget.ArrayBuffer, GL.GenBuffer());
         // Load our vertex data into the array buffer
-        GL.BufferData(BufferTarget.ArrayBuffer, _verticesData.Length * sizeof(float), _verticesData,
+        GL.BufferData(BufferTarget.ArrayBuffer, verticesData.Length * sizeof(float), verticesData,
             BufferUsageHint.StaticDraw);
 
-        // Initialize the vertex array object (this will hold the data that tells OpenGL how to read our vertex data)
+        // Initialize the vertex array object (this will hold the data that tells OpenGL how our vertex data is formatted)
         GL.BindVertexArray(GL.GenVertexArray());
 
-        // Load our configuration into the vertex array object
-        // Argument 0 (position) occurs every 6 slots with no offset
-        // Argument 1 (color) occurs every 6 slots with an offset of 3 slots
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+        // Load our format configuration into the vertex array object
+        // Argument 0 (position) occurs every 3 slots with no offset
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
-        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
 
         // Initialize the element array buffer (this will tell OpenGL how to assemble our vertices into larger shapes, such as rectangles)
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, GL.GenBuffer());
         // Load our configuration into the element array buffer
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _vertexIndices.Length * sizeof(uint), _vertexIndices,
+        GL.BufferData(BufferTarget.ElementArrayBuffer, vertexIndices.Length * sizeof(uint), vertexIndices,
             BufferUsageHint.StaticDraw);
 
         // Create and initialize our shader program
@@ -71,13 +60,41 @@ public class ProjectWindow : IDisposable
     }
 
     // Renders the first x by y tiles in the list
-    public void RenderFrame(Dictionary<int, Dictionary<int, Tile>> tiles)
+    public void RenderFrame(List<List<Tile>> tiles)
     {
         // Clear the previous frame
         GL.Clear(ClearBufferMask.ColorBufferBit);
+        
+        // TODO: Would it instead be better to just have the vertices data for one tile and to pass the position as a
+        // uniform?
+        // If I implement smooth movement, I think the answer is definitely yes, because I'd have to pass an offset
+        // as a uniform anyway.
+        for (int rowIndex = 0; rowIndex < TileCountY; rowIndex++)
+        {
+            for (int tileIndexInRow = 0; tileIndexInRow < TileCountX; tileIndexInRow++)
+            {
+                // Set the color for the current tile.
+                // TODO: set a different color based on the tile type
+                _shader.SetVector3Uniform("currentColor", new Vector3(1, 0, 0));
+                // Draw the next tile.
+                int absoluteTileIndex = rowIndex * TileCountX + tileIndexInRow;
+                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 6 * sizeof(uint) * absoluteTileIndex);
+            }
+        }
+        foreach (var row in tiles)
+        {
+            foreach (var _ in row)
+            {
+                // Set the color for the current tile
+                // TODO: set a different color based on the tile type
+                _shader.SetVector3Uniform("currentColor", new Vector3(1, 0, 0));
+                // Draw the next tile
+                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 6 * sizeof(uint));
+            }
+        }
 
         // Draw the data that we previously loaded into the array buffer
-        GL.DrawElements(PrimitiveType.Triangles, _vertexIndices.Length, DrawElementsType.UnsignedInt, 0);
+        // GL.DrawElements(PrimitiveType.Triangles, AssembleTileVertexIndices(TileCountX, TileCountY).Length, DrawElementsType.UnsignedInt, 0);
 
         // Display the result of our render calls
         _window.Context.SwapBuffers();
@@ -109,5 +126,75 @@ public class ProjectWindow : IDisposable
     public static void WaitForNextInput()
     {
         NativeWindow.ProcessWindowEvents(true);
+    }
+
+    // Assembles the vertices for the number of tiles we'll need.
+    // Vertices are ordered left to right, top to bottom.
+    private static float[] AssembleVertices(int tileCountX, int tileCountY)
+    {
+        // The number of vertices we will be assembling. Each vertex is three floats (positions in one dimension).
+        int totalVertices = (tileCountX + 1) * (tileCountY + 1);
+
+        float xVerticesGap = 1.0f / tileCountX;
+        float yVerticesGap = 1.0f / tileCountY;
+
+        float[] verticesData = new float[3 * totalVertices];
+
+        for (int vertexIndex = 0; vertexIndex < totalVertices; vertexIndex++)
+        {
+            // Calculate x and y indices.
+            int xIndex = vertexIndex % (tileCountX + 1);
+            int yIndex = vertexIndex / (tileCountX + 1);
+
+            // Calculate x and y positions (Normalized Device Coordinates - between negative 1 and 1).
+            // The "* 2 - 1" part maps the range from 0 - 1 to -1 - 1.
+            float xPosition = xIndex * xVerticesGap * 2 - 1;
+            float yPosition = yIndex * yVerticesGap * 2 - 1;
+
+            // Push x and y positions to verticesData, plus 0 for the z position.
+            int realIndex = vertexIndex * 3;
+            verticesData[realIndex] = xPosition;
+            verticesData[realIndex + 1] = yPosition;
+            verticesData[realIndex + 2] = 0.0f;
+        }
+
+        return verticesData;
+    }
+
+    // Assembles the index data that allows us to turn the triangle vertexes into squares.
+    // Indices are per vertex, not per position. So one index corresponds to three floats in the vertices array,
+    // since each vertex is composed of three floats.
+    // Tiles are expected to be rendered left to right, top to bottom.
+    private static uint[] AssembleTileVertexIndices(int tileCountX, int tileCountY)
+    {
+        // The number of tiles we will be assembling. Each tile is six indices.
+        int totalTiles = tileCountX * tileCountY;
+
+        uint[] tileVertexIndices = new uint[6 * totalTiles];
+
+        for (int tileIndex = 0; tileIndex < totalTiles; tileIndex++)
+        {
+            // Calculate x and y tile indices.
+            int xTileIndex = tileIndex % tileCountX;
+            int yTileIndex = tileIndex / tileCountX;
+
+            // Calculate the indices of the four corners of this tile.
+            uint tileTopLeftIndex = (uint)yTileIndex * ((uint)tileCountX + 1) + (uint)xTileIndex;
+            uint tileTopRightIndex = tileTopLeftIndex + 1;
+            uint tileBottomLeftIndex = tileTopLeftIndex + (uint)tileCountX + 1;
+            uint tileBottomRightIndex = tileBottomLeftIndex + 1;
+
+            // Push six indices to vertexIndices. The first three are the top left triangle of the square and the
+            // second three are the bottom right triangle.
+            int realIndex = tileIndex * 6;
+            tileVertexIndices[realIndex] = tileBottomLeftIndex;
+            tileVertexIndices[realIndex + 1] = tileTopRightIndex;
+            tileVertexIndices[realIndex + 2] = tileTopLeftIndex;
+            tileVertexIndices[realIndex + 3] = tileBottomLeftIndex;
+            tileVertexIndices[realIndex + 4] = tileTopRightIndex;
+            tileVertexIndices[realIndex + 5] = tileBottomRightIndex;
+        }
+
+        return tileVertexIndices;
     }
 }

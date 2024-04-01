@@ -1,15 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 // Taken from https://opentk.net/learn/chapter1/2-hello-triangle.html
 public class Shader : IDisposable
 {
     private readonly int _handle;
+    private readonly Dictionary<string, int> _uniformLocations;
 
     public Shader(string vertexPath, string fragmentPath)
     {
-        // Set up shader objects
+        // Set up shader objects.
         string vertexShaderSource = File.ReadAllText(vertexPath);
         string fragmentShaderSource = File.ReadAllText(fragmentPath);
 
@@ -19,7 +22,7 @@ public class Shader : IDisposable
         var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
         GL.ShaderSource(fragmentShader, fragmentShaderSource);
 
-        // Compile shaders and print any errors
+        // Compile shaders and print any errors.
         GL.CompileShader(vertexShader);
 
         GL.GetShader(vertexShader, ShaderParameter.CompileStatus, out int vertexSuccess);
@@ -38,7 +41,7 @@ public class Shader : IDisposable
             Console.WriteLine(infoLog);
         }
 
-        // Set up the full shader program with the individual shaders and print any errors
+        // Set up the full shader program with the individual shaders and print any errors.
         _handle = GL.CreateProgram();
 
         GL.AttachShader(_handle, vertexShader);
@@ -53,11 +56,13 @@ public class Shader : IDisposable
             Console.WriteLine(infoLog);
         }
 
-        // The data has been copied to the shader program, so we can clean up the individual shaders
+        // The data has been copied to the shader program, so we can clean up the individual shaders.
         GL.DetachShader(_handle, vertexShader);
         GL.DetachShader(_handle, fragmentShader);
         GL.DeleteShader(fragmentShader);
         GL.DeleteShader(vertexShader);
+
+        _uniformLocations = GetAllUniformLocations();
     }
 
     public void Dispose()
@@ -69,5 +74,31 @@ public class Shader : IDisposable
     public void Use()
     {
         GL.UseProgram(_handle);
+    }
+
+    public void SetVector3Uniform(string name, Vector3 data)
+    {
+        GL.UseProgram(_handle);
+        GL.Uniform3(_uniformLocations[name], data);
+    }
+
+    // Taken from https://github.com/opentk/LearnOpenTK/blob/master/Common/Shader.cs
+    private Dictionary<string, int> GetAllUniformLocations()
+    {
+        var uniformLocations = new Dictionary<string, int>();
+
+        // Get the number of active uniforms.
+        GL.GetProgram(_handle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
+
+        // Iterate through the uniforms and add each to the dictionary.
+        for (var i = 0; i < numberOfUniforms; i++)
+        {
+            var key = GL.GetActiveUniform(_handle, i, out _, out _);
+            var location = GL.GetUniformLocation(_handle, key);
+            uniformLocations.Add(key, location);
+        }
+
+        // Return the list of uniform locations.
+        return uniformLocations;
     }
 }

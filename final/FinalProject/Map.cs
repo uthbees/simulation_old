@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 readonly struct TileAndPosition
 {
@@ -18,16 +19,17 @@ public class Map
     private readonly List<TileAndPosition> _tiles = new();
     private int seed;
 
-    public Dictionary<int, Dictionary<int, Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
+    // Returns a two-dimensional array of tiles, with the y being the first layer and the x being the second.
+    public List<List<Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
     {
-        var nearbyTiles = new Dictionary<int, Dictionary<int, Tile>>();
+        var nearbyTiles = new List<List<Tile>>();
 
         for (int y = position.Y + radiusY; y >= position.Y - radiusY; y--)
         {
-            nearbyTiles.Add(y, new Dictionary<int, Tile>());
+            nearbyTiles.Add(new List<Tile>());
             for (int x = position.X - radiusX; x <= position.X + radiusX; x++)
             {
-                nearbyTiles[y].Add(x, GetTile(new Position(x, y)));
+                nearbyTiles.Last().Add(GetTile(new Position(x, y)));
             }
         }
 
