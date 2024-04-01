@@ -1,4 +1,3 @@
-using System;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 class Program
@@ -7,44 +6,21 @@ class Program
     {
         Map map = new();
         Controller controller = new(0, 0);
-        using WindowManager windowManager = new();
+        using ProjectWindow projectWindow = new();
 
-        windowManager.RegisterKeyAction(Keys.A, () => Console.WriteLine("a"));
+        projectWindow.RegisterKeyAction(Keys.W, () => controller.Move(Direction.North));
+        projectWindow.RegisterKeyAction(Keys.Up, () => controller.Move(Direction.North));
+        projectWindow.RegisterKeyAction(Keys.A, () => controller.Move(Direction.West));
+        projectWindow.RegisterKeyAction(Keys.Left, () => controller.Move(Direction.West));
+        projectWindow.RegisterKeyAction(Keys.S, () => controller.Move(Direction.South));
+        projectWindow.RegisterKeyAction(Keys.Down, () => controller.Move(Direction.South));
+        projectWindow.RegisterKeyAction(Keys.D, () => controller.Move(Direction.East));
+        projectWindow.RegisterKeyAction(Keys.Right, () => controller.Move(Direction.East));
 
-        while (!windowManager.WindowShouldClose())
+        while (!projectWindow.WindowShouldClose())
         {
-            windowManager.RenderFrame(new FrameData());
-            WindowManager.WaitForNextInput();
+            projectWindow.RenderFrame(map.GetNearbyTiles(controller.GetPosition(), 7, 7));
+            ProjectWindow.WaitForNextInput();
         }
-
-        // string lastInput = "";
-        // while (lastInput != "Q")
-        // {
-        //     Console.Clear();
-        //     map.Display(controller.GetPosition());
-        //     Console.WriteLine("Use arrow keys or WASD to move. Press q to quit.");
-        //
-        //     lastInput = Console.ReadKey(true).Key.ToString();
-        //
-        //     switch (lastInput)
-        //     {
-        //         case "W":
-        //         case "UpArrow":
-        //             controller.Move(Direction.North);
-        //             break;
-        //         case "A":
-        //         case "LeftArrow":
-        //             controller.Move(Direction.West);
-        //             break;
-        //         case "S":
-        //         case "DownArrow":
-        //             controller.Move(Direction.South);
-        //             break;
-        //         case "D":
-        //         case "RightArrow":
-        //             controller.Move(Direction.East);
-        //             break;
-        //     }
-        // }
     }
 }

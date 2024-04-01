@@ -18,42 +18,42 @@ public class Map
     private readonly List<TileAndPosition> _tiles = new();
     private int seed;
 
-    private const int HalfWidth = 20;
-    private const int HalfHeight = 5;
-
-    public void Display(Position position)
+    public Dictionary<int, Dictionary<int, Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
     {
+        var nearbyTiles = new Dictionary<int, Dictionary<int, Tile>>();
+
+        for (int y = position.Y + radiusY; y >= position.Y - radiusY; y--)
+        {
+            nearbyTiles.Add(y, new Dictionary<int, Tile>());
+            for (int x = position.X - radiusX; x <= position.X + radiusX; x++)
+            {
+                nearbyTiles[y].Add(x, GetTile(new Position(x, y)));
+            }
+        }
+
+        return nearbyTiles;
+    }
+
+    private Tile GetTile(Position position)
+    {
+        Tile foundTile;
+
         // This is absolutely terrible efficiency.
         // TODO: try to improve lookup times:
         // https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
-        for (int y = position.Y + HalfHeight; y >= position.Y - HalfHeight; y--)
+        int tileIndex = _tiles.FindIndex((tile) => tile.Position.X == position.X && tile.Position.Y == position.Y);
+        if (tileIndex != -1)
         {
-            for (int x = position.X - HalfWidth; x <= position.X + HalfWidth; x++)
-            {
-                TileAndPosition foundTile;
-
-                int tileIndex = _tiles.FindIndex((tile) => tile.Position.X == x && tile.Position.Y == y);
-                if (tileIndex != -1)
-                {
-                    foundTile = _tiles[tileIndex];
-                }
-                else
-                {
-                    // Generate the tile if it doesn't already exist.
-                    var newTile = new TileAndPosition(GenerateTile(x, y), new Position(x, y));
-                    foundTile = newTile;
-                    _tiles.Add(newTile);
-                }
-
-                // TODO: If I need more things for scope, I can expand this into more of a rendering engine and add
-                // support for rendering the character and other things on top of tiles.
-                foundTile.Tile.Display();
-            }
-
-            Console.WriteLine();
+            foundTile = _tiles[tileIndex].Tile;
+        }
+        else
+        {
+            // Generate the tile if it doesn't already exist.
+            foundTile = GenerateTile(position.X, position.Y);
+            _tiles.Add(new TileAndPosition(foundTile, new Position(position.X, position.Y)));
         }
 
-        Console.ResetColor();
+        return foundTile;
     }
 
     public bool DirectionIsWalkable(Direction direction)
@@ -69,6 +69,7 @@ public class Map
         {
             return new WaterTile();
         }
+
         if (Math.Sqrt(x * x + y * y) < 10)
         {
             return new BeachTile();
