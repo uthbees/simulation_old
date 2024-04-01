@@ -1,32 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class ProjectWindow : IDisposable
 {
+    private const int TileCountX = 15;
+    private const int TileCountY = 15;
+
     private readonly NativeWindow _window;
     private bool _closing = false;
 
-    private readonly int _vertexBufferObject;
     private readonly int _vertexArrayObject;
     private readonly Shader _shader;
 
-    private const int TileCountX = 15;
-    private const int TileCountY = 15;
-    
-    // Create the vertices for our triangle. These are listed in normalized device coordinates (NDC)
-    // In NDC, (0, 0) is the center of the screen.
-    // Negative X coordinates move to the left, positive X move to the right.
-    // Negative Y coordinates move to the bottom, positive Y move to the top.
-    // OpenGL only supports rendering in 3D, so to create a flat triangle, the Z coordinate will be kept as 0.
     private readonly float[] _vertices =
     {
-        -0.1f, -0.1f, 0.0f, // Bottom-left vertex
-        0.1f, -0.1f, 0.0f, // Bottom-right vertex
-        0.0f,  0.1f, 0.0f  // Top vertex
+        0.5f, 0.5f, 0.0f, // top right
+        0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, // top left
+    };
+
+    private readonly uint[] _indices =
+    {
+        // Note that indices start at 0!
+        0, 1, 3, // The first triangle will be the top-right half of the triangle
+        1, 2, 3 // Then the second will be the bottom-left half of the triangle
     };
 
     public ProjectWindow()
@@ -40,6 +41,7 @@ public class ProjectWindow : IDisposable
         _window.Closing += (_) => { _closing = true; };
 
         GL.ClearColor(0.39f, 0.58f, 0.93f, 1.0f);
+
         // TODO: orthographic projection?
         // https://stackoverflow.com/a/5879422 (?)
         // https://opentk.net/learn/chapter1/8-coordinate-systems.html (?)
@@ -48,15 +50,19 @@ public class ProjectWindow : IDisposable
         // GL.LoadIdentity();
         // GL.Ortho(0, TileCountX * 100, TileCountY * 100, 0, -10, 10);
 
-        _vertexBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices, BufferUsageHint.StaticDraw);
+        GL.BindBuffer(BufferTarget.ArrayBuffer, GL.GenBuffer());
+        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
+            BufferUsageHint.StaticDraw);
 
         _vertexArrayObject = GL.GenVertexArray();
         GL.BindVertexArray(_vertexArrayObject);
-        
+
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         GL.EnableVertexAttribArray(0);
+
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, GL.GenBuffer());
+        GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices,
+            BufferUsageHint.StaticDraw);
 
         _shader = new Shader("shaders/shader.vert", "shaders/shader.frag");
         _shader.Use();
@@ -68,12 +74,11 @@ public class ProjectWindow : IDisposable
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
         _shader.Use();
-        GL.BindVertexArray(_vertexArrayObject);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
-        // Show in the window the results of the rendering calls.
+        GL.BindVertexArray(_vertexArrayObject);
+        GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
+
         _window.Context.SwapBuffers();
-        Console.WriteLine(GL.GetError());
     }
 
     public void Dispose()
