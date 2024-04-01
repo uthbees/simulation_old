@@ -1,12 +1,12 @@
-using System;
+using OpenTK.Mathematics;
 
 public class MountainTile : Tile
 {
-    public override void Display()
+    private readonly Vector3 _color = new(0.5f, 0.5f, 0.5f);
+
+    public override Vector3 GetColor()
     {
-        Console.BackgroundColor = ConsoleColor.DarkGray;
-        Console.ForegroundColor = ConsoleColor.Gray;
-        Console.Write('^');
+        return _color;
     }
 
     public override bool IsWalkable()
@@ -14,4 +14,3 @@ public class MountainTile : Tile
         return true;
     }
 }
-    

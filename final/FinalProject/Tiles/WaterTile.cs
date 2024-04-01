@@ -1,12 +1,12 @@
-using System;
+using OpenTK.Mathematics;
 
 public class WaterTile : Tile
 {
-    public override void Display()
+    private readonly Vector3 _color = new(0, 0, 1);
+
+    public override Vector3 GetColor()
     {
-        Console.BackgroundColor = ConsoleColor.Blue;
-        Console.ForegroundColor = ConsoleColor.Cyan;
-        Console.Write('`');
+        return _color;
     }
 
     public override bool IsWalkable()

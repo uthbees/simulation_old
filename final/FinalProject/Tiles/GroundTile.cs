@@ -1,12 +1,12 @@
-using System;
+using OpenTK.Mathematics;
 
-public class GroundTile: Tile
+public class GroundTile : Tile
 {
-    public override void Display()
+    private readonly Vector3 _color = new(0.2f, 0.5f, 0.2f);
+
+    public override Vector3 GetColor()
     {
-        Console.BackgroundColor = ConsoleColor.DarkGreen;
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write('"');
+        return _color;
     }
 
     public override bool IsWalkable()

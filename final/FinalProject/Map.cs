@@ -17,8 +17,9 @@ readonly struct TileAndPosition
 public class Map
 {
     private readonly List<TileAndPosition> _tiles = new();
-    private int seed;
+    // private int seed;
 
+    // TODO: This seems to be putting the position at the top left instead of the center?
     // Returns a two-dimensional array of tiles, with the y being the first layer and the x being the second.
     public List<List<Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
     {
@@ -69,7 +70,12 @@ public class Map
         // TODO: use noise
         if (Math.Sqrt(x * x + y * y) < 4)
         {
-            return new WaterTile();
+            if (x > 0)
+            {
+                return new WaterTile();
+            }
+
+            return new BeachTile();
         }
 
         if (Math.Sqrt(x * x + y * y) < 10)
@@ -77,7 +83,7 @@ public class Map
             return new BeachTile();
         }
 
-        if (x % 2 == 0)
+        if (y < 0)
         {
             return new GroundTile();
         }

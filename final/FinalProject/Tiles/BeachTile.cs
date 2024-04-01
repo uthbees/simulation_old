@@ -1,11 +1,12 @@
-using System;
+using OpenTK.Mathematics;
 
 public class BeachTile : Tile
 {
-    public override void Display()
+    private readonly Vector3 _color = new(1, 0.8f, 0);
+
+    public override Vector3 GetColor()
     {
-        Console.BackgroundColor = ConsoleColor.Yellow;
-        Console.Write(' ');
+        return _color;
     }
 
     public override bool IsWalkable()

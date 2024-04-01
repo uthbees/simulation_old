@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class ProjectWindow : IDisposable
 {
-    private const int TileCountX = 2;
-    private const int TileCountY = 2;
+    private const int TileCountX = 15;
+    private const int TileCountY = 15;
     private const int ResolutionX = 1500;
     private const int ResolutionY = 1500;
 
@@ -64,7 +63,7 @@ public class ProjectWindow : IDisposable
     {
         // Clear the previous frame
         GL.Clear(ClearBufferMask.ColorBufferBit);
-        
+
         // TODO: Would it instead be better to just have the vertices data for one tile and to pass the position as a
         // uniform?
         // If I implement smooth movement, I think the answer is definitely yes, because I'd have to pass an offset
@@ -73,23 +72,14 @@ public class ProjectWindow : IDisposable
         {
             for (int tileIndexInRow = 0; tileIndexInRow < TileCountX; tileIndexInRow++)
             {
-                // Set the color for the current tile.
-                // TODO: set a different color based on the tile type
-                _shader.SetVector3Uniform("currentColor", new Vector3(1, 0, 0));
+                // Set the color for the next tile.
+                var currentTile = tiles[rowIndex][tileIndexInRow];
+                _shader.SetVector3Uniform("currentColor", currentTile.GetColor());
+
                 // Draw the next tile.
                 int absoluteTileIndex = rowIndex * TileCountX + tileIndexInRow;
-                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 6 * sizeof(uint) * absoluteTileIndex);
-            }
-        }
-        foreach (var row in tiles)
-        {
-            foreach (var _ in row)
-            {
-                // Set the color for the current tile
-                // TODO: set a different color based on the tile type
-                _shader.SetVector3Uniform("currentColor", new Vector3(1, 0, 0));
-                // Draw the next tile
-                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 6 * sizeof(uint));
+                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt,
+                    6 * sizeof(uint) * absoluteTileIndex);
             }
         }
 
@@ -146,15 +136,19 @@ public class ProjectWindow : IDisposable
             int xIndex = vertexIndex % (tileCountX + 1);
             int yIndex = vertexIndex / (tileCountX + 1);
 
-            // Calculate x and y positions (Normalized Device Coordinates - between negative 1 and 1).
+            // Calculate x and y positions if 0, 0 was the top left corner.
             // The "* 2 - 1" part maps the range from 0 - 1 to -1 - 1.
-            float xPosition = xIndex * xVerticesGap * 2 - 1;
-            float yPosition = yIndex * yVerticesGap * 2 - 1;
+            float rawXPosition = xIndex * xVerticesGap * 2 - 1;
+            float rawYPosition = yIndex * yVerticesGap * 2 - 1;
+
+            // Calculate Normalized Device Coordinates - between -1 and 1, where 0, 0 is the center.
+            float normalizedXPosition = rawXPosition * 2 - 1;
+            float normalizedYPosition = -rawYPosition * 2 + 1;
 
             // Push x and y positions to verticesData, plus 0 for the z position.
             int realIndex = vertexIndex * 3;
-            verticesData[realIndex] = xPosition;
-            verticesData[realIndex + 1] = yPosition;
+            verticesData[realIndex] = normalizedXPosition;
+            verticesData[realIndex + 1] = normalizedYPosition;
             verticesData[realIndex + 2] = 0.0f;
         }
 

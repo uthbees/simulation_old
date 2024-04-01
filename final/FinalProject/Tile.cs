@@ -1,5 +1,7 @@
+using OpenTK.Mathematics;
+
 public abstract class Tile
 {
-    public abstract void Display();
+    public abstract Vector3 GetColor();
     public abstract bool IsWalkable();
 }
