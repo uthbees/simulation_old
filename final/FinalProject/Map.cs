@@ -20,6 +20,8 @@ public class Map
     // private int seed;
 
     // TODO: This seems to be putting the position at the top left instead of the center?
+    // I think the renderer might be not rendering all the tiles? Either way, it would be good to make it just
+    // dynamically render however many tiles are sent to it.
     // Returns a two-dimensional array of tiles, with the y being the first layer and the x being the second.
     public List<List<Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
     {

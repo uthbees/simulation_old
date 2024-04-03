@@ -76,10 +76,22 @@ public class Shader : IDisposable
         GL.UseProgram(_handle);
     }
 
-    public void SetVector3Uniform(string name, Vector3 data)
+    public void SetUniform(string name, Vector3 data)
     {
         GL.UseProgram(_handle);
         GL.Uniform3(_uniformLocations[name], data);
+    }
+
+    public void SetUniform(string name, Vector2 data)
+    {
+        GL.UseProgram(_handle);
+        GL.Uniform2(_uniformLocations[name], data);
+    }
+
+    public void SetUniform(string name, float data)
+    {
+        GL.UseProgram(_handle);
+        GL.Uniform1(_uniformLocations[name], data);
     }
 
     // Taken from https://github.com/opentk/LearnOpenTK/blob/master/Common/Shader.cs
