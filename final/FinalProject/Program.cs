@@ -26,3 +26,19 @@ class Program
         }
     }
 }
+
+/*
+To do list:
+
+* Pre-submission *
+- Basic terrain generation using noise
+- Render "avatar" (a triangle) on the center tile
+- Implement terrain collision (even if that means the player will be stuck on an island)
+
+* Post-submission *
+- Improve terrain generation
+- Smooth (fractional) movement
+- Improve tile lookup efficiency
+    - This might be helpful: https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
+- Click on water to place landfill?
+ */

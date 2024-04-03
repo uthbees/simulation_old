@@ -40,9 +40,7 @@ public class Map
     {
         Tile foundTile;
 
-        // This is absolutely terrible efficiency.
-        // TODO: try to improve lookup times:
-        // https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
+        // This is absolutely terrible efficiency, but it's fine for the assignment.
         int tileIndex = _tiles.FindIndex((tile) => tile.Position.X == position.X && tile.Position.Y == position.Y);
         if (tileIndex != -1)
         {
@@ -60,13 +58,11 @@ public class Map
 
     public bool DirectionIsWalkable(Direction direction)
     {
-        // TODO
         return true;
     }
 
     private static Tile GenerateTile(int x, int y)
     {
-        // TODO: use noise
         if (Math.Sqrt(x * x + y * y) < 4)
         {
             if (x > 0)
