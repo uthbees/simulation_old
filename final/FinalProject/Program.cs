@@ -4,9 +4,11 @@ class Program
 {
     static void Main(string[] args)
     {
+        const int windowTileRadius = 10;
+        
         Map map = new();
         Controller controller = new(0, 0);
-        using ProjectWindow projectWindow = new();
+        using ProjectWindow projectWindow = new(windowTileRadius);
 
         projectWindow.RegisterKeyAction(Keys.W, () => controller.Move(Direction.North));
         projectWindow.RegisterKeyAction(Keys.Up, () => controller.Move(Direction.North));
@@ -19,7 +21,7 @@ class Program
 
         while (!projectWindow.WindowShouldClose())
         {
-            projectWindow.RenderFrame(map.GetNearbyTiles(controller.GetPosition(), 7, 7));
+            projectWindow.RenderFrame(map, controller.GetPosition());
             ProjectWindow.WaitForNextInput();
         }
     }

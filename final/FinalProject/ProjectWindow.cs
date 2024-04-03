@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Desktop;
@@ -7,18 +6,22 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 public class ProjectWindow : IDisposable
 {
-    private const int TileCountX = 15;
-    private const int TileCountY = 15;
     private const int ResolutionX = 1500;
     private const int ResolutionY = 1500;
 
     private readonly NativeWindow _window;
     private bool _closing = false;
 
-    private readonly Shader _shader;
+    private Shader _shader;
 
-    public ProjectWindow()
+    private readonly int _windowTileRadius;
+    private readonly int _windowTileDiameter;
+
+    public ProjectWindow(int windowTileRadius)
     {
+        _windowTileRadius = windowTileRadius;
+        _windowTileDiameter = windowTileRadius * 2 + 1;
+
         var window = new NativeWindow(new NativeWindowSettings
         {
             ClientSize = (ResolutionX, ResolutionY),
@@ -27,6 +30,11 @@ public class ProjectWindow : IDisposable
         _window = window;
         _window.Closing += (_) => { _closing = true; };
 
+        InitializeRenderer();
+    }
+
+    private void InitializeRenderer()
+    {
         // Set the background color
         GL.ClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 
@@ -39,25 +47,27 @@ public class ProjectWindow : IDisposable
         _shader = new Shader("shaders/shader.vert", "shaders/shader.frag");
         _shader.Use();
 
-        // Set the tile size (width/height). We multiply by 2 because coordinates go from -1 to 1.
+        // Set the tile size (width/height). We multiply by 2 because normalized device coordinates go from -1 to 1.
         // Note: only looks at x dimension at the moment.
-        _shader.SetUniform("tileSize", 1.0f / TileCountX * 2);
+        _shader.SetUniform("tileSize", 1.0f / _windowTileDiameter * 2);
     }
 
-    // Renders the first x by y tiles in the list
-    public void RenderFrame(List<List<Tile>> tiles)
+    public void RenderFrame(Map map, Position position)
     {
+        // Gather rendering data
+        var tiles = map.GetNearbyTiles(position, _windowTileRadius, _windowTileRadius);
+
         // Clear the previous frame
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        for (int rowIndex = 0; rowIndex < TileCountY; rowIndex++)
+        for (int rowIndex = 0; rowIndex < _windowTileDiameter; rowIndex++)
         {
-            for (int tileIndexInRow = 0; tileIndexInRow < TileCountX; tileIndexInRow++)
+            for (int tileIndexInRow = 0; tileIndexInRow < _windowTileDiameter; tileIndexInRow++)
             {
                 // Set the color and position for the next tile.
                 var currentTile = tiles[rowIndex][tileIndexInRow];
-                var tileTopLeftCorner = ConvertCoordsToNDC(new Vector2((float)tileIndexInRow / TileCountX,
-                    1 - (float)rowIndex / TileCountY));
+                var tileTopLeftCorner = ConvertCoordsToNDC(new Vector2((float)tileIndexInRow / _windowTileDiameter,
+                    1 - (float)rowIndex / _windowTileDiameter));
 
                 _shader.SetUniform("currentColor", currentTile.GetColor());
                 _shader.SetUniform("tileTopLeftCorner", tileTopLeftCorner);
@@ -66,8 +76,6 @@ public class ProjectWindow : IDisposable
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
             }
         }
-
-        Console.WriteLine();
 
         // Display the result of our render calls
         _window.Context.SwapBuffers();
