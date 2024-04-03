@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK.Mathematics;
 
 readonly struct TileAndPosition
 {
@@ -17,7 +18,15 @@ readonly struct TileAndPosition
 public class Map
 {
     private readonly List<TileAndPosition> _tiles = new();
-    // private int seed;
+    private readonly Vector3i _noiseOffsets;
+
+    public Map()
+    {
+        var random = new Random();
+
+        _noiseOffsets = new Vector3i(random.Next(int.MinValue, int.MaxValue), random.Next(int.MinValue, int.MaxValue),
+            random.Next(int.MinValue, int.MaxValue));
+    }
 
     // Returns a two-dimensional array of tiles, with the y being the first layer and the x being the second.
     public List<List<Tile>> GetNearbyTiles(Position position, int radiusX, int radiusY)
@@ -61,28 +70,24 @@ public class Map
         return true;
     }
 
-    private static Tile GenerateTile(int x, int y)
+    private Tile GenerateTile(int x, int y)
     {
-        if (Math.Sqrt(x * x + y * y) < 4)
-        {
-            if (x > 0)
-            {
-                return new WaterTile();
-            }
+        var noise = PerlinNoise.OctavedNoise(x + _noiseOffsets.X, y + _noiseOffsets.Y, _noiseOffsets.Z, scale: 30);
 
-            return new BeachTile();
-        }
+        var height = noise + 0.05;
 
+        // Make the starting area always land
         if (Math.Sqrt(x * x + y * y) < 10)
-        {
-            return new BeachTile();
-        }
-
-        if (y < 0)
         {
             return new GroundTile();
         }
 
-        return new MountainTile();
+        return height switch
+        {
+            < 0 => new WaterTile(),
+            < 0.04 => new BeachTile(),
+            < 0.3 => new GroundTile(),
+            _ => new MountainTile()
+        };
     }
 }
