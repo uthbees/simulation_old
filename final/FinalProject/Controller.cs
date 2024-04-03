@@ -1,17 +1,3 @@
-using System;
-
-public struct Position
-{
-    public int X { get; }
-    public int Y { get; }
-
-    public Position(int x, int y)
-    {
-        X = x;
-        Y = y;
-    }
-}
-
 public enum Direction
 {
     North,
@@ -22,38 +8,28 @@ public enum Direction
 
 public class Controller
 {
-    private int _posX;
-    private int _posY;
+    private readonly Position _position;
+    private readonly Map _map;
 
-    public Controller(int posX, int posY)
+    public Controller(Map map)
     {
-        _posX = posX;
-        _posY = posY;
+        _position = new Position(0, 0);
+        _map = map;
     }
 
     public Position GetPosition()
     {
-        return new Position(_posX, _posY);
+        return _position;
     }
 
-    public void Move(Direction direction)
+    public void AttemptMove(Direction direction)
     {
-        switch (direction)
+        var attemptedTarget = new Position(_position);
+        attemptedTarget.Move(direction);
+
+        if (_map.PositionIsWalkable(attemptedTarget))
         {
-            case Direction.North:
-                _posY++;
-                break;
-            case Direction.East:
-                _posX++;
-                break;
-            case Direction.South:
-                _posY--;
-                break;
-            case Direction.West:
-                _posX--;
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            _position.Move(direction);
         }
     }
 }

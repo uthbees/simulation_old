@@ -11,6 +11,6 @@ public class WaterTile : Tile
 
     public override bool IsWalkable()
     {
-        return true;
+        return false;
     }
 }

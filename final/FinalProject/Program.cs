@@ -7,17 +7,17 @@ class Program
         const int windowTileRadius = 10;
 
         Map map = new();
-        Controller controller = new(0, 0);
+        Controller controller = new(map);
         using ProjectWindow projectWindow = new(windowTileRadius);
 
-        projectWindow.RegisterKeyAction(Keys.W, () => controller.Move(Direction.North));
-        projectWindow.RegisterKeyAction(Keys.Up, () => controller.Move(Direction.North));
-        projectWindow.RegisterKeyAction(Keys.A, () => controller.Move(Direction.West));
-        projectWindow.RegisterKeyAction(Keys.Left, () => controller.Move(Direction.West));
-        projectWindow.RegisterKeyAction(Keys.S, () => controller.Move(Direction.South));
-        projectWindow.RegisterKeyAction(Keys.Down, () => controller.Move(Direction.South));
-        projectWindow.RegisterKeyAction(Keys.D, () => controller.Move(Direction.East));
-        projectWindow.RegisterKeyAction(Keys.Right, () => controller.Move(Direction.East));
+        projectWindow.RegisterKeyAction(Keys.W, () => controller.AttemptMove(Direction.North));
+        projectWindow.RegisterKeyAction(Keys.Up, () => controller.AttemptMove(Direction.North));
+        projectWindow.RegisterKeyAction(Keys.A, () => controller.AttemptMove(Direction.West));
+        projectWindow.RegisterKeyAction(Keys.Left, () => controller.AttemptMove(Direction.West));
+        projectWindow.RegisterKeyAction(Keys.S, () => controller.AttemptMove(Direction.South));
+        projectWindow.RegisterKeyAction(Keys.Down, () => controller.AttemptMove(Direction.South));
+        projectWindow.RegisterKeyAction(Keys.D, () => controller.AttemptMove(Direction.East));
+        projectWindow.RegisterKeyAction(Keys.Right, () => controller.AttemptMove(Direction.East));
 
         while (!projectWindow.WindowShouldClose())
         {
@@ -32,7 +32,6 @@ To do list:
 
 * Pre-submission *
 - Render "avatar" (a triangle) on the center tile
-- Implement terrain collision (even if that means the player will be stuck on an island)
 
 * Post-submission *
 - Smooth (fractional) movement

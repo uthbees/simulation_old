@@ -65,9 +65,9 @@ public class Map
         return foundTile;
     }
 
-    public bool DirectionIsWalkable(Direction direction)
+    public bool PositionIsWalkable(Position position)
     {
-        return true;
+        return GetTile(position).IsWalkable();
     }
 
     private Tile GenerateTile(int x, int y)
