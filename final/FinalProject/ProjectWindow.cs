@@ -12,15 +12,25 @@ public class ProjectWindow : IDisposable
     private readonly NativeWindow _window;
     private bool _closing = false;
 
-    private Shader _shader;
+    private Shader _avatarShader;
+    private Shader _tileShader;
 
-    private readonly int _windowTileRadius;
-    private readonly int _windowTileDiameter;
+    private readonly int _tilesFromCenterOfWindow;
+    private readonly int _tilesAcrossWindow;
 
-    public ProjectWindow(int windowTileRadius)
+    private readonly float[] _avatarVertices =
     {
-        _windowTileRadius = windowTileRadius;
-        _windowTileDiameter = windowTileRadius * 2 + 1;
+        0.0f, 0.75f, 0.0f, // Top
+        -0.5f, -0.75f, 0.0f, // Bottom left
+        0.5f, -0.75f, 0.0f // Bottom right
+    };
+
+    private readonly Vector3 _avatarColor = new(1, 0.5f, 0);
+
+    public ProjectWindow(int tilesFromCenterOfWindow)
+    {
+        _tilesFromCenterOfWindow = tilesFromCenterOfWindow;
+        _tilesAcrossWindow = tilesFromCenterOfWindow * 2 + 1;
 
         var window = new NativeWindow(new NativeWindowSettings
         {
@@ -35,49 +45,65 @@ public class ProjectWindow : IDisposable
 
     private void InitializeRenderer()
     {
-        // Set the background color
+        // Set the background color.
         GL.ClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 
-        // Initialize the vertex array object.
-        // Normally, this would hold the data that tells OpenGL how our vertex data is formatted. We're passing all our
-        // vertex data through uniforms, so we don't need it, but OpenGL refuses to run if one isn't bound.
+        // Initialize the array buffer (this will hold our vertex data).
+        GL.BindBuffer(BufferTarget.ArrayBuffer, GL.GenBuffer());
+        // Load the avatar vertex data into the array buffer, since the avatar is the only thing that uses it.
+        GL.BufferData(BufferTarget.ArrayBuffer, _avatarVertices.Length * sizeof(float), _avatarVertices,
+            BufferUsageHint.StaticDraw);
+
+        // Initialize the vertex array object (this will hold the data that tells OpenGL how our vertex data is formatted).
         GL.BindVertexArray(GL.GenVertexArray());
 
-        // Create and initialize our shader program
-        _shader = new Shader("shaders/shader.vert", "shaders/shader.frag");
-        _shader.Use();
+        // Load our format configuration into the vertex array object:
+        // Argument 0 (position) occurs every 3 slots with no offset.
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
 
-        // Set the tile size (width/height). We multiply by 2 because normalized device coordinates go from -1 to 1.
-        // Note: only looks at x dimension at the moment.
-        _shader.SetUniform("tileSize", 1.0f / _windowTileDiameter * 2);
+        // Create our tile shader programs.
+        _avatarShader = new Shader("shaders/genericShader.vert", "shaders/genericShader.frag");
+        _tileShader = new Shader("shaders/tileShader.vert", "shaders/genericShader.frag");
+
+        // Set the shader uniforms that don't get updated every frame.
+        _avatarShader.SetUniform("color", _avatarColor);
+        // Tile size is both width and height. We multiply by 2 because normalized device coordinates go from -1 to 1.
+        _tileShader.SetUniform("tileSize", 1.0f / _tilesAcrossWindow * 2);
     }
 
     public void RenderFrame(Map map, Position position)
     {
-        // Gather rendering data
-        var tiles = map.GetNearbyTiles(position, _windowTileRadius, _windowTileRadius);
+        // Gather rendering data.
+        var tiles = map.GetNearbyTiles(position, _tilesFromCenterOfWindow, _tilesFromCenterOfWindow);
 
-        // Clear the previous frame
+        // Clear the previous frame.
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        for (int rowIndex = 0; rowIndex < _windowTileDiameter; rowIndex++)
+        // Draw the tiles.
+        _tileShader.Use();
+        for (int rowIndex = 0; rowIndex < _tilesAcrossWindow; rowIndex++)
         {
-            for (int tileIndexInRow = 0; tileIndexInRow < _windowTileDiameter; tileIndexInRow++)
+            for (int tileIndexInRow = 0; tileIndexInRow < _tilesAcrossWindow; tileIndexInRow++)
             {
                 // Set the color and position for the next tile.
                 var currentTile = tiles[rowIndex][tileIndexInRow];
-                var tileTopLeftCorner = ConvertCoordsToNDC(new Vector2((float)tileIndexInRow / _windowTileDiameter,
-                    1 - (float)rowIndex / _windowTileDiameter));
+                var tileTopLeftCorner = ConvertCoordsToNDC(new Vector2((float)tileIndexInRow / _tilesAcrossWindow,
+                    1 - (float)rowIndex / _tilesAcrossWindow));
 
-                _shader.SetUniform("currentColor", currentTile.GetColor());
-                _shader.SetUniform("tileTopLeftCorner", tileTopLeftCorner);
+                _tileShader.SetUniform("color", currentTile.GetColor());
+                _tileShader.SetUniform("tileTopLeftCorner", tileTopLeftCorner);
 
                 // Draw a tile (six vertices, which is two triangles) with the new uniforms.
                 GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
             }
         }
 
-        // Display the result of our render calls
+        // Draw the avatar.
+        _avatarShader.Use();
+        GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
+
+        // Display the result of our render calls.
         _window.Context.SwapBuffers();
     }
 
@@ -85,7 +111,7 @@ public class ProjectWindow : IDisposable
     {
         _window.Dispose();
         GC.SuppressFinalize(this);
-        _shader.Dispose();
+        _tileShader.Dispose();
     }
 
     public bool WindowShouldClose()
