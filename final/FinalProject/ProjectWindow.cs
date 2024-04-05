@@ -18,11 +18,12 @@ public class ProjectWindow : IDisposable
     private readonly int _tilesFromCenterOfWindow;
     private readonly int _tilesAcrossWindow;
 
+    // A simple triangle.
     private readonly float[] _avatarVertices =
     {
-        0.0f, 0.75f, 0.0f, // Top
-        -0.5f, -0.75f, 0.0f, // Bottom left
-        0.5f, -0.75f, 0.0f // Bottom right
+        0.0f, 0.5f, 0.0f, // Top
+        -0.35f, -0.5f, 0.0f, // Bottom left
+        0.35f, -0.5f, 0.0f // Bottom right
     };
 
     private readonly Vector3 _avatarColor = new(1, 0.5f, 0);
@@ -63,13 +64,15 @@ public class ProjectWindow : IDisposable
         GL.EnableVertexAttribArray(0);
 
         // Create our tile shader programs.
-        _avatarShader = new Shader("shaders/genericShader.vert", "shaders/genericShader.frag");
+        _avatarShader = new Shader("shaders/transformableShader.vert", "shaders/genericShader.frag");
         _tileShader = new Shader("shaders/tileShader.vert", "shaders/genericShader.frag");
 
         // Set the shader uniforms that don't get updated every frame.
+        var tileScaleFactor = 1.0f / _tilesAcrossWindow;
         _avatarShader.SetUniform("color", _avatarColor);
+        _avatarShader.SetUniform("transform", Matrix4.CreateScale(tileScaleFactor, tileScaleFactor, 1));
         // Tile size is both width and height. We multiply by 2 because normalized device coordinates go from -1 to 1.
-        _tileShader.SetUniform("tileSize", 1.0f / _tilesAcrossWindow * 2);
+        _tileShader.SetUniform("tileSize", tileScaleFactor * 2);
     }
 
     public void RenderFrame(Map map, Position position)

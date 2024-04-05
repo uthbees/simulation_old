@@ -76,10 +76,10 @@ public class Shader : IDisposable
         GL.UseProgram(_handle);
     }
 
-    public void SetUniform(string name, Vector3 data)
+    public void SetUniform(string name, float data)
     {
         GL.UseProgram(_handle);
-        GL.Uniform3(_uniformLocations[name], data);
+        GL.Uniform1(_uniformLocations[name], data);
     }
 
     public void SetUniform(string name, Vector2 data)
@@ -88,10 +88,16 @@ public class Shader : IDisposable
         GL.Uniform2(_uniformLocations[name], data);
     }
 
-    public void SetUniform(string name, float data)
+    public void SetUniform(string name, Vector3 data)
     {
         GL.UseProgram(_handle);
-        GL.Uniform1(_uniformLocations[name], data);
+        GL.Uniform3(_uniformLocations[name], data);
+    }
+
+    public void SetUniform(string name, Matrix4 data)
+    {
+        GL.UseProgram(_handle);
+        GL.UniformMatrix4(_uniformLocations[name], true, ref data);
     }
 
     // Taken from https://github.com/opentk/LearnOpenTK/blob/master/Common/Shader.cs
