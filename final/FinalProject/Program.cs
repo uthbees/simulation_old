@@ -29,16 +29,11 @@ class Program
 
 /*
 To do list:
-
-* Pre-submission *
 - Render "avatar" (a triangle) on the center tile
-
-* Post-submission *
 - Smooth (fractional) movement
 - Improve tile lookup efficiency
     - This might be helpful: https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
 
-* Ideas *
 - Click on water to place landfill?
 - Improve terrain generation?
 - Scroll to zoom?
