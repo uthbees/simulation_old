@@ -37,4 +37,5 @@ To do list:
 - Improve terrain generation?
 - Scroll to zoom?
 - Send tile positions as vertex attributes or something instead of a uniform? (Updating uniforms is relatively slow.)
- */
+- Add agents with basic AI - maybe GOAP?
+*/
