@@ -1,0 +1,24 @@
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>disable</Nullable>
+        <RootNamespace>ConsoleApp1</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="OpenTK" Version="4.8.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Remove="shaders/*.vert;shaders/*.frag" />
+        <Content Include="shaders/*.vert;shaders/*.frag">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        <None Include="shaders\shader.frag" />
+        <None Include="shaders\shader.vert" />
+    </ItemGroup>
+
+</Project>
