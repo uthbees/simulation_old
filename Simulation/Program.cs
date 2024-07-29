@@ -26,16 +26,3 @@ class Program
         }
     }
 }
-
-/*
-To do list:
-- Smooth (fractional) movement
-- Improve tile lookup efficiency
-    - This might be helpful: https://gamedev.stackexchange.com/questions/176198/recommended-data-structure-for-storage-and-fast-access-of-infinite-chunk-based-h
-
-- Click on water to place landfill?
-- Improve terrain generation?
-- Scroll to zoom?
-- Send tile positions as vertex attributes or something instead of a uniform? (Updating uniforms is relatively slow.)
-- Add agents with basic AI - maybe GOAP?
-*/
