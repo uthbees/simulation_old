@@ -1,5 +1,7 @@
 An experimental simulation, made so that I can play around with various technologies (for example, OpenGL).
 
+**Note**: This is the old version, from before I ported it to Rust.
+
 As of this writing, the project is fairly bare-bones, but I might add more features to it later.
 
 Features:
